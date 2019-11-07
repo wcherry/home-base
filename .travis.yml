@@ -1,0 +1,14 @@
+dist: xenial
+language: node_js
+node_js:
+  - "10"
+services:
+  - redis
+  - mongodb
+cache: npm
+install:
+    - "npm install"
+script:
+    - "npm run test"
+after_success:
+    - "npm run cover"
