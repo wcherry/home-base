@@ -1,9 +1,7 @@
 const express = require('express')
 const next = require('next')
-const fetch = require("node-fetch");
-var convert = require('xml2js');
-const util = require('util');
 const path = require('path');
+const feedService = require('./feed-service');
 
 const port = parseInt(process.env.PORT, 10) || 3000
 const dev = process.env.NODE_ENV !== 'production'
@@ -32,35 +30,10 @@ app.prepare().then(() => {
   })
 
   server.get('/api/feed', (req, res) => {
-    const url = "http://localhost:3000/static/nytimes_rss.xml";
-    fetch(url)
-      .then(response => {
-        response.text().then(body =>{
-          convert.parseStringPromise(body).then(function (result) {
-            console.log(`Response received: ${response.status} url: ${url}`);
-            var stories = 0;
-            const channels = result.rss.channel.map(c => {
-              try{const imgUrl = c.item[0]['media:content'][0]['$'].url;
-              const imgCredit = c.item[0]['media:credit'][0];
-              const items = c.item.map(i => {
-                stories++;
-                return {title: i.title[0], link: i.link[0], description: i.description[0], published: i.pubDate}
-              });
-              console.log(`Loaded ${stories} stories for url ${url}`);
-              return {title: c.title[0], description: c.description[0], image: imgUrl, imageCredit: imgCredit, items: items}
-            } catch(e){
-              console.log(e);
-            }
-            });
-
-            res.send(channels);  
-          })
-          .catch(function (err) {
-            console.log(err);
-          });
-       })
+    feedService.getChannelsFromUrl("http://localhost:3000/static/nytimes_rss.xml").then(channels =>{
+    console.log("Sending data...");  
+    res.send(channels);
     })
-     .catch(err => {console.log(err);});
   })
 
   server.all('*', (req, res) => {
