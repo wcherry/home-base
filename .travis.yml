@@ -7,8 +7,8 @@ services:
   - mongodb
 cache: npm
 install:
-    - "cd home-base && npm install"
+    - "npm install"
 script:
     - "npm run test"
 after_success:
-    - "npm run coverage"
+    - "npm run cover"
